@@ -278,7 +278,7 @@ lm = loadMovieData()
 
 userItems, nUsers, nItems, nDays, minTimestamp = lm.main()
 nFactors = 20
-nBins = 10
+nBins = 30
 
 timesvd_pp = timeSVDpp(20, nFactors, nUsers, nItems, userItems, nBins, nDays, minTimestamp)
 
