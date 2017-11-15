@@ -150,12 +150,12 @@ class timeSVDpp:
                     prediction = self.prediction(userId, itemid, timestamp_)
                     error = rating - prediction
 
-                    self.bu[userId] += self.gamma_1 * error - self.tau_6 * self.bu[userId]
-                    self.bi[itemid] += self.gamma_1 * error - self.tau_6 * self.bi[itemid]
+                    self.bu[userId] += 0.01 * error - 0.01 * self.bu[userId] # self.gamma_1 * error - self.tau_6 * self.bu[userId]
+                    self.bi[itemid] += 0.01 * error - 0.01 * self.bi[itemid] # self.gamma_1 * error - self.tau_6 * self.bi[itemid]
 
-                    self.bu_t[userId - 1][timestamp_]  += self.gamma_1 * (error - 0.005 * self.bu_t[userId - 1][timestamp_])
-                    self.bi_bin[itemid][self.calBin(timestamp_)] += self.gamma_1 * (error - 0.005 * self.bi_bin[itemid][self.calBin(timestamp_)])
-                    self.alpha_u[userId] += self.g_alpha * (error * self.dev(userId, timestamp_) - self.l_alpha * self.alpha_u[userId])
+                    self.bu_t[userId][timestamp_]  += 0.01 * (error - 0.01 * self.bu_t[userId][timestamp_]) # self.gamma_1 * (error - 0.005 * self.bu_t[userId - 1][timestamp_])
+                    self.bi_bin[itemid][self.calBin(timestamp_)] += 0.01 * (error - 0.01* self.bi_bin[itemid][self.calBin(timestamp_)]) # self.gamma_1 * (error - 0.005 * self.bi_bin[itemid][self.calBin(timestamp_)])
+                    self.alpha_u[userId] += 0.01 * (error * self.dev(userId, timestamp_) - 0.01 * self.alpha_u[userId]) # self.g_alpha * (error * self.dev(userId, timestamp_) - self.l_alpha * self.alpha_u[userId])
 
                     # updating factors
                     for k in range(self.factors):
@@ -163,17 +163,17 @@ class timeSVDpp:
                         i_f = self.itemFactors[itemid][k]
                         u_f_t = self.userFactors_t[userId][k][timestamp_]
 
-                        self.userFactors[userId][k] += self.gamma_1 * (error * i_f - 0.015 * u_f)
-                        self.itemFactors[itemid][k] += self.gamma_1 * (error * (u_f + sqrtNum * self.sumMW[userId][k]) - 0.015 * i_f)
-                        self.alpha_u_k[userId][k] += self.g_alpha * (error * self.dev(userId, timestamp_) - self.l_alpha * self.alpha_u_k[userId][k])
-                        self.userFactors_t[userId][k][timestamp_] += self.gamma_1 * (error * i_f - 0.015 * u_f_t)
+                        self.userFactors[userId][k] += 0.01 * (error * i_f - 0.01 * u_f) # self.gamma_1 * (error * i_f - 0.015 * u_f)
+                        self.itemFactors[itemid][k] += 0.01 * (error * (u_f + sqrtNum * self.sumMW[userId][k]) - 0.01 * i_f) # self.gamma_1 * (error * (u_f + sqrtNum * self.sumMW[userId][k]) - 0.015 * i_f)
+                        self.alpha_u_k[userId][k] += 0.01 * (error * self.dev(userId, timestamp_) - 0.01 * self.alpha_u_k[userId][k]) # self.g_alpha * (error * self.dev(userId, timestamp_) - self.l_alpha * self.alpha_u_k[userId][k])
+                        self.userFactors_t[userId][k][timestamp_] += 0.01 * (error * i_f - 0.01 * u_f_t) # self.gamma_1 * (error * i_f - 0.015 * u_f_t)
                         tmpSum[k] += error * sqrtNum * i_f
 
                 for j in range(sz):
                     itID = self.userItems[userId][j][0]
                     for f in range(self.factors):
                         tmpMW = self.y_j[itID][f]
-                        self.y_j[itID][f] += self.gamma_1 * (tmpSum[f] - 0.015 * tmpMW)
+                        self.y_j[itID][f] += 0.01 * (tmpSum[f] - 0.01 * tmpMW) # self.gamma_1 * (tmpSum[f] - 0.015 * tmpMW)
                         self.y_j[itID][f] = round(self.y_j[itID][f], 4)
                         self.sumMW[userId][f] += self.y_j[itID][f] - tmpMW
 
@@ -216,7 +216,7 @@ class timeSVDpp:
 
     #deviation of user u at given t
     def dev(self, userID, t):
-        deviation = np.sign(t - self.meanTime(userID)) * pow(abs(t - self.meanTime(userID)), 0.4)
+        deviation = np.sign(t - self.meanTime(userID)) * pow(abs(t - self.meanTime(userID)), 0.015)
 
         return deviation
 
@@ -250,7 +250,7 @@ class timeSVDpp:
 
     # evaluating the model using RMSE
     def RMSE(self):
-        with open("..\\ml-100k\\u1.test", 'rb') as f:
+        with open("C:\\Users\\trimi\\Desktop\\timeSVD++\\SVD\\dataset\\ml-100k\\u1.test", 'rb') as f:
             data = csv.reader(f, delimiter = '\t')
 
             mean_squared_error = 0
@@ -280,10 +280,10 @@ class timeSVDpp:
 lm = loadMovieData()
 
 userItems, nUsers, nItems, nDays, minTimestamp = lm.main()
-nFactors = 20
-nBins = 30
+nFactors = 10
+nBins = 6
 
-timesvd_pp = timeSVDpp(20, nFactors, nUsers, nItems, userItems, nBins, nDays, minTimestamp)
+timesvd_pp = timeSVDpp(100, nFactors, nUsers, nItems, userItems, nBins, nDays, minTimestamp)
 
 #10, bins, 1 iteration: RMSE = 1.02648993887
 #10 bins,  20 iterations: RMSE = 0.94744760782
