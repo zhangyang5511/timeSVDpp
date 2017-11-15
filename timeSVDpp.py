@@ -53,6 +53,8 @@ class timeSVDpp:
         self.userFactors_t = userFactors_t
         print 'initialization finished...'
 
+        self.average = self.avg()
+        print 'avg = ', self.average
         print 'training started...'
         self.train(self.iterations)
         print 'training finished...'
@@ -199,7 +201,7 @@ class timeSVDpp:
 
             sz = len(self.userItems[i])
             for j in range(sz):
-                s += self.userItems[i][j][2]
+                s += self.userItems[i][j][1]
                 count += 1
         avg = s/count
 
@@ -242,10 +244,11 @@ class timeSVDpp:
         tmp = 0
         for k in range(self.factors):
             tmp  += ((self.userFactors[u][k] + self.alpha_u_k[u][k] * self.dev(u, day_ind) + self.userFactors_t[u][k][day_ind]) + (sqrtNum * self.sumMW[u][k])) * self.itemFactors[i][k]
-        prediction = 3.5 + self.bu[u] + self.bi[i] + self.bi_bin[i][self.calBin(day_ind)] + self.alpha_u[u] * self.dev(u, day_ind) + self.bu_t[u][day_ind] + tmp
+        prediction = self.average + self.bu[u] + self.bi[i] + self.bi_bin[i][self.calBin(day_ind)] + self.alpha_u[u] * self.dev(u, day_ind) + self.bu_t[u][day_ind] + tmp
 
         return prediction
 
+    # evaluating the model using RMSE
     def RMSE(self):
         with open("..\\ml-100k\\u1.test", 'rb') as f:
             data = csv.reader(f, delimiter = '\t')
